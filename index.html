@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For You 💌</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=Caveat:wght@500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ======================================================
+   EDIT THESE (also in the CONFIG block in the script)
+   ====================================================== */
+:root{
+  --cream:#fff6f1;
+  --blush:#ffe3e3;
+  --rose:#e64b6b;
+  --rose-deep:#c2304f;
+  --wine:#4b1325;
+  --ink:#3a1a22;
+  --muted:#9a6b74;
+  --card:#ffffffcc;
+  --shadow:0 20px 60px -20px rgba(120,20,45,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'DM Sans',sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #ffd6dc 0%, transparent 60%),
+    radial-gradient(900px 500px at 110% 110%, #ffd9c7 0%, transparent 60%),
+    var(--cream);
+  overflow:hidden;
+  min-width:960px;
+}
+#hearts{position:fixed;inset:0;pointer-events:none;z-index:0;width:100%;height:100%}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:10;width:100%;height:100%}
+
+.stage{position:relative;z-index:1;height:100vh;display:grid;place-items:center}
+.screen{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px;opacity:0;visibility:hidden;transform:translateY(24px) scale(.98);
+  transition:opacity .7s ease, transform .7s cubic-bezier(.2,.8,.2,1), visibility .7s;
+}
+.screen.active{opacity:1;visibility:visible;transform:none}
+
+.eyebrow{font-family:'Caveat',cursive;font-size:30px;color:var(--rose);margin-bottom:6px}
+h1{font-family:'Fraunces',serif;font-weight:600;font-size:64px;line-height:1.05;color:var(--wine);text-align:center;letter-spacing:-.5px}
+h1 em{font-style:italic;color:var(--rose)}
+h2{font-family:'Fraunces',serif;font-weight:600;font-size:46px;color:var(--wine);text-align:center;letter-spacing:-.3px}
+h2 em{font-style:italic;color:var(--rose)}
+.sub{font-size:19px;color:var(--muted);margin-top:16px;text-align:center;max-width:620px;line-height:1.6}
+
+.btn{
+  font-family:'DM Sans',sans-serif;font-weight:600;font-size:18px;border:none;cursor:pointer;
+  padding:16px 38px;border-radius:999px;transition:transform .25s ease, box-shadow .25s ease, background .25s;
+}
+.btn-primary{background:var(--rose);color:#fff;box-shadow:0 10px 30px -8px rgba(230,75,107,.7)}
+.btn-primary:hover{background:var(--rose-deep);transform:translateY(-2px)}
+.btn-ghost{background:#fff;color:var(--wine);border:2px solid #f3c6cf}
+.btn-ghost:hover{border-color:var(--rose)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* ---------- Screen 1: thank you ---------- */
+.letter{
+  background:var(--card);backdrop-filter:blur(8px);border-radius:28px;padding:56px 72px 48px;
+  box-shadow:var(--shadow);text-align:center;max-width:760px;border:1px solid #ffe0e6;
+}
+.big-heart{font-size:72px;display:inline-block;animation:beat 1.4s ease-in-out infinite;margin-bottom:10px}
+@keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.18)}30%{transform:scale(1)}45%{transform:scale(1.12)}}
+.signature{font-family:'Caveat',cursive;font-size:30px;color:var(--wine);margin:22px 0 30px}
+
+/* ---------- Screen 2: yes/no ---------- */
+.ask-wrap{text-align:center}
+.choice-row{position:relative;margin-top:50px;height:200px;width:760px;display:flex;align-items:center;justify-content:center;gap:28px}
+#yesBtn{transition:transform .35s cubic-bezier(.3,1.6,.5,1), box-shadow .3s;z-index:3}
+#noBtn{position:relative;z-index:4;transition:left .25s ease, top .25s ease}
+#noBtn.loose{position:fixed}
+.no-msg{font-family:'Caveat',cursive;font-size:28px;color:var(--rose);height:36px;margin-top:20px}
+#cry{position:fixed;left:50%;bottom:3vh;transform:translateX(-50%);text-align:center;pointer-events:none;z-index:2;
+  opacity:0;transition:opacity .3s}
+#cry.show{opacity:1}
+#cry .face{display:inline-block;line-height:1;transition:font-size .35s cubic-bezier(.3,1.6,.5,1);animation:sob .45s ease-in-out infinite}
+#cry .cap{font-family:'Caveat',cursive;color:var(--wine);font-size:30px;margin-top:4px}
+@keyframes sob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(6px) rotate(4deg)}}
+.tear{position:fixed;font-size:26px;pointer-events:none;z-index:2;animation:tear 1.2s ease-in forwards}
+@keyframes tear{to{transform:translateY(160px);opacity:0}}
+
+/* ---------- Screen 3: date type ---------- */
+.grid{display:grid;grid-template-columns:repeat(3,220px);gap:22px;margin-top:42px}
+.opt{
+  background:var(--card);border:2px solid transparent;border-radius:22px;padding:26px 20px 22px;
+  text-align:center;cursor:pointer;box-shadow:0 10px 30px -18px rgba(120,20,45,.4);
+  transition:transform .25s ease, border-color .25s, box-shadow .25s, background .25s;
+  position:relative;
+}
+.opt:hover{transform:translateY(-6px);box-shadow:var(--shadow)}
+.opt .ic{font-size:46px;display:block;margin-bottom:10px}
+.opt .t{font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:var(--wine)}
+.opt .d{font-size:14px;color:var(--muted);margin-top:6px;line-height:1.45}
+.opt.selected{border-color:var(--rose);background:#fff}
+.opt.selected::after{
+  content:'♥';position:absolute;top:12px;right:16px;color:var(--rose);font-size:20px;
+}
+.opt.special{background:linear-gradient(135deg,#ffe7ec,#fff2ea);border:2px dashed #f0a7b6}
+.opt.special.selected{border-style:solid;border-color:var(--rose)}
+.nav{margin-top:40px;display:flex;gap:16px}
+
+/* ---------- Screen 4: calendar ---------- */
+.planner{display:flex;gap:28px;margin-top:36px;align-items:stretch}
+.panel{background:var(--card);border-radius:24px;padding:28px;box-shadow:var(--shadow);border:1px solid #ffe0e6}
+.cal{width:400px}
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.cal-head .m{font-family:'Fraunces',serif;font-size:24px;font-weight:600;color:var(--wine)}
+.cal-head button{background:#fff;border:1.5px solid #f3c6cf;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:16px;color:var(--wine)}
+.cal-head button:hover{border-color:var(--rose)}
+.cal-head button:disabled{opacity:.3;cursor:not-allowed}
+.dow,.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center}
+.dow span{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding-bottom:6px}
+.day{height:44px;border-radius:12px;display:grid;place-items:center;cursor:pointer;font-weight:500;transition:background .2s,color .2s}
+.day:hover{background:var(--blush)}
+.day.past{color:#d6bcc1;cursor:not-allowed;background:none}
+.day.today{box-shadow:inset 0 0 0 1.5px #f0a7b6}
+.day.sel{background:var(--rose);color:#fff}
+.times{width:330px;display:flex;flex-direction:column}
+.label{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+.slots{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.slot{padding:12px;border-radius:14px;border:1.5px solid #f3c6cf;background:#fff;cursor:pointer;font-weight:500;text-align:center;transition:all .2s}
+.slot small{display:block;font-size:12px;color:var(--muted);font-weight:400;margin-top:2px}
+.slot:hover{border-color:var(--rose)}
+.slot.sel{background:var(--rose);border-color:var(--rose);color:#fff}
+.slot.sel small{color:#ffe3e8}
+.or{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:14px;margin:22px 0 14px}
+.or::before,.or::after{content:'';flex:1;height:1px;background:#f0cdd4}
+.you-plan{
+  padding:16px;border-radius:16px;border:2px dashed #f0a7b6;background:linear-gradient(135deg,#ffe7ec,#fff2ea);
+  cursor:pointer;text-align:center;transition:all .2s;
+}
+.you-plan b{font-family:'Fraunces',serif;font-size:18px;color:var(--wine)}
+.you-plan div{font-size:13px;color:var(--muted);margin-top:4px}
+.you-plan.sel{border-style:solid;border-color:var(--rose);background:#fff}
+.picked{margin-top:auto;padding-top:18px;font-family:'Caveat',cursive;font-size:24px;color:var(--rose);min-height:48px}
+
+/* ---------- Screen 5: done ---------- */
+.ticket{
+  display:flex;background:#fff;border-radius:26px;box-shadow:var(--shadow);overflow:hidden;margin-top:34px;width:720px;
+}
+.ticket .left{flex:1;padding:34px 38px}
+.ticket .right{width:200px;background:var(--rose);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:relative;border-left:3px dashed #fff}
+.ticket .right .h{font-size:64px}
+.ticket .right .adm{font-family:'Caveat',cursive;font-size:26px;margin-top:6px}
+.row{display:flex;gap:14px;align-items:baseline;padding:10px 0;border-bottom:1px solid #f6e0e4}
+.row:last-child{border:none}
+.row .k{width:90px;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.row .v{font-family:'Fraunces',serif;font-size:22px;color:var(--wine)}
+.final-note{font-family:'Caveat',cursive;font-size:30px;color:var(--wine);margin-top:28px;text-align:center}
+.send-row{margin-top:24px;display:flex;gap:14px;align-items:center}
+.send-row .btn{line-height:1.2}
+.link-btn{margin-top:18px;background:none;border:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:15px;text-decoration:underline;cursor:pointer}
+.link-btn:hover{color:var(--rose)}
+</style>
+</head>
+<body>
+<canvas id="hearts"></canvas>
+<canvas id="fx"></canvas>
+
+<div class="stage">
+
+  <!-- 1. THANK YOU -->
+  <section class="screen active" id="s1">
+    <div class="letter">
+      <div class="big-heart">💗</div>
+      <div class="eyebrow">hey <span class="her"></span>,</div>
+      <h1>Thank you for<br>saying <em>yes</em>.</h1>
+      <p class="sub">You just made my whole year. I wanted to do this properly, so I made you a little something. There's one more question.</p>
+      <div class="signature">— <span class="me"></span></div>
+      <button class="btn btn-primary" onclick="go(2)">Open it ♥</button>
+    </div>
+  </section>
+
+  <!-- 2. YES / NO -->
+  <section class="screen" id="s2">
+    <div class="ask-wrap">
+      <div class="eyebrow">the real question</div>
+      <h2>Will you go on a <em>date</em> with me?</h2>
+      <div class="choice-row" id="choiceRow">
+        <button class="btn btn-primary" id="yesBtn" onclick="go(3)">Yes 💕</button>
+        <button class="btn btn-ghost" id="noBtn">No</button>
+      </div>
+      <div class="no-msg" id="noMsg"></div>
+    </div>
+    <div id="cry"><div class="face">😭</div><div class="cap" id="cryCap"></div></div>
+  </section>
+
+  <!-- 3. DATE TYPE -->
+  <section class="screen" id="s3">
+    <div class="eyebrow">yay!! okay, so…</div>
+    <h2>What sounds <em>perfect</em> to you?</h2>
+    <div class="grid" id="typeGrid"></div>
+    <div class="nav">
+      <button class="btn btn-primary" id="typeNext" disabled onclick="go(4)">Next →</button>
+    </div>
+  </section>
+
+  <!-- 4. CALENDAR -->
+  <section class="screen" id="s4">
+    <div class="eyebrow">almost there</div>
+    <h2>When are you <em>free</em>?</h2>
+    <div class="planner">
+      <div class="panel cal">
+        <div class="cal-head">
+          <button id="prevM" aria-label="Previous month">‹</button>
+          <div class="m" id="monthLabel"></div>
+          <button id="nextM" aria-label="Next month">›</button>
+        </div>
+        <div class="dow"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
+        <div class="days" id="days"></div>
+      </div>
+      <div class="panel times">
+        <div class="label">Pick a time</div>
+        <div class="slots" id="slots"></div>
+        <div class="or">or</div>
+        <div class="you-plan" id="youPlan">
+          <b>You plan it 😌</b>
+          <div>Surprise me with the day and time</div>
+        </div>
+        <div class="picked" id="picked"></div>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn btn-ghost" onclick="go(3)">← Back</button>
+      <button class="btn btn-primary" id="timeNext" disabled onclick="finish()">Lock it in ♥</button>
+    </div>
+  </section>
+
+  <!-- 5. DONE -->
+  <section class="screen" id="s5">
+    <div class="eyebrow">it's official</div>
+    <h2>It's a <em>date</em>.</h2>
+    <div class="ticket">
+      <div class="left">
+        <div class="row"><span class="k">Who</span><span class="v"><span class="her"></span> &amp; <span class="me"></span></span></div>
+        <div class="row"><span class="k">What</span><span class="v" id="fWhat"></span></div>
+        <div class="row"><span class="k">When</span><span class="v" id="fWhen"></span></div>
+      </div>
+      <div class="right"><div class="h">💌</div><div class="adm">admit two</div></div>
+    </div>
+    <div class="final-note">Can't wait. Send this to me so I can start planning.</div>
+    <div class="send-row">
+      <a class="btn btn-primary" id="waWebBtn" target="_blank" rel="noopener" style="text-decoration:none">Send on WhatsApp Web</a>
+      <a class="btn btn-ghost" id="waBtn" target="_blank" rel="noopener" style="text-decoration:none">WhatsApp app</a>
+      <button class="btn btn-ghost" id="copyBtn" onclick="copyAnswer()">Copy my answer</button>
+    </div>
+    <button class="link-btn" onclick="restart()">change my mind</button>
+  </section>
+</div>
+
+<script>
+/* ======================================================
+   CONFIG: edit these before you publish
+   ====================================================== */
+const CONFIG = {
+  herName: "Prerana",
+  myName:  "Yash",
+  whatsapp: "919029962180",   // your number with country code, digits only
+  // Silent backup: her answer is saved to your Google Form the moment she clicks "Lock it in".
+  // Leave formUrl empty to turn this off. See setup steps in the chat.
+  googleForm: {
+    formUrl:   "",            // e.g. "https://docs.google.com/forms/d/e/XXXX/formResponse"
+    entryWhat: "entry.111111111",
+    entryWhen: "entry.222222222"
+  },
+  myChoice: {                 // your special pick for her
+    icon: "🌅",
+    title: "My choice for you",
+    desc: "Something I've been planning just for you. Trust me?"
+  },
+  options: [
+    { icon:"🎬", title:"Movie",        desc:"Popcorn, a good film, and arguing about the ending" },
+    { icon:"☕", title:"Coffee",       desc:"A cozy café and conversations that run long" },
+    { icon:"🍝", title:"Dinner",       desc:"Good food, candlelight, no rush" },
+    { icon:"🌙", title:"Long walk",    desc:"Evening breeze, street food, just us" },
+    { icon:"🍦", title:"Ice cream",    desc:"Two scoops and a sunset" }
+  ],
+  slots: [
+    { t:"11:00 AM", s:"late morning" },
+    { t:"1:00 PM",  s:"lunch time" },
+    { t:"4:00 PM",  s:"evening tea" },
+    { t:"6:00 PM",  s:"sunset" },
+    { t:"7:30 PM",  s:"dinner" },
+    { t:"9:00 PM",  s:"night out" }
+  ]
+};
+
+/* ---------- names ---------- */
+document.querySelectorAll('.her').forEach(e=>e.textContent=CONFIG.herName);
+document.querySelectorAll('.me').forEach(e=>e.textContent=CONFIG.myName);
+
+/* ---------- state ---------- */
+const state = { type:null, date:null, time:null, youPlan:false };
+
+/* ---------- navigation ---------- */
+let current = 1;
+function go(n){
+  document.getElementById('s'+current).classList.remove('active');
+  document.getElementById('s'+n).classList.add('active');
+  current = n;
+  if(n===2) resetNo();
+  if(n===3) burst(30);
+}
+
+/* ---------- 2: runaway No ---------- */
+const noBtn = document.getElementById('noBtn');
+const yesBtn = document.getElementById('yesBtn');
+const noMsg = document.getElementById('noMsg');
+const noLines = [
+  "nice try 😏", "are you sure?", "think again…", "that button is shy",
+  "it doesn't work, sorry", "yes is right there 👉", "you know you want to",
+  "okay now you're just playing", "the yes button is getting impatient", "🥺"
+];
+let tries = 0;
+function dodge(){
+  tries++;
+  if(!noBtn.classList.contains('loose')){
+    const r = noBtn.getBoundingClientRect();
+    noBtn.classList.add('loose');
+    noBtn.style.left = r.left+'px';
+    noBtn.style.top  = r.top+'px';
+  }
+  const pad = 40, w = noBtn.offsetWidth, h = noBtn.offsetHeight;
+  const yr = yesBtn.getBoundingClientRect();
+  let x, y, guard = 0;
+  do{
+    x = pad + Math.random()*(window.innerWidth  - w - pad*2);
+    y = pad + Math.random()*(window.innerHeight - h - pad*2);
+    guard++;
+  } while(guard<30 && x < yr.right+40 && x+w > yr.left-40 && y < yr.bottom+40 && y+h > yr.top-40);
+  noBtn.style.left = x+'px';
+  noBtn.style.top  = y+'px';
+  const scale = Math.min(1 + tries*0.18, 3);
+  yesBtn.style.transform = `scale(${scale})`;
+  if(tries <= noLines.length){
+    noMsg.textContent = noLines[tries-1];
+  } else {
+    cryMode(tries - noLines.length);
+  }
+  const shrink = Math.max(1 - tries*0.06, 0.55);
+  noBtn.style.fontSize = (18*shrink)+'px';
+  noBtn.style.padding = `${16*shrink}px ${38*shrink}px`;
+}
+noBtn.addEventListener('mouseenter', dodge);
+noBtn.addEventListener('focus', dodge);
+noBtn.addEventListener('click', e=>{ e.preventDefault(); dodge(); });
+noBtn.addEventListener('touchstart', e=>{ e.preventDefault(); dodge(); }, {passive:false});
+const cryLines = [
+  "okay now I'm crying", "WAAAAH 😭", "why would you do this to me",
+  "my heart is in pieces rn", "I can't stop crying", "the tears won't stop 💧",
+  "just press YES pleaseeee", "😭😭😭"
+];
+const cry = document.getElementById('cry');
+const cryFace = cry.querySelector('.face');
+function cryMode(n){
+  noMsg.textContent = "";
+  cry.classList.add('show');
+  cryFace.style.fontSize = Math.min(70 + n*30, 190) + 'px';
+  document.getElementById('cryCap').textContent = cryLines[Math.min(n-1, cryLines.length-1)];
+  const r = cryFace.getBoundingClientRect();
+  for(let i=0;i<Math.min(2+n,8);i++){
+    const t = document.createElement('div');
+    t.className = 'tear'; t.textContent = '💧';
+    t.style.left = (r.left + r.width*(0.2 + Math.random()*0.6)) + 'px';
+    t.style.top  = (r.top + r.height*0.45) + 'px';
+    t.style.animationDelay = (i*0.12)+'s';
+    document.body.appendChild(t);
+    setTimeout(()=>t.remove(), 1600 + i*120);
+  }
+}
+function resetNo(){
+  tries = 0;
+  cry.classList.remove('show');
+  cryFace.style.fontSize = '';
+  noBtn.classList.remove('loose');
+  noBtn.removeAttribute('style');
+  yesBtn.style.transform = '';
+  noMsg.textContent = '';
+}
+
+/* ---------- 3: date type ---------- */
+const grid = document.getElementById('typeGrid');
+const allOpts = [...CONFIG.options, {...CONFIG.myChoice, special:true}];
+allOpts.forEach(o=>{
+  const el = document.createElement('div');
+  el.className = 'opt' + (o.special?' special':'');
+  el.innerHTML = `<span class="ic">${o.icon}</span><div class="t">${o.title}</div><div class="d">${o.desc}</div>`;
+  el.onclick = ()=>{
+    grid.querySelectorAll('.opt').forEach(x=>x.classList.remove('selected'));
+    el.classList.add('selected');
+    state.type = o.special ? "Your choice (surprise me)" : o.title;
+    document.getElementById('typeNext').disabled = false;
+    miniBurst(el);
+  };
+  grid.appendChild(el);
+});
+
+/* ---------- 4: calendar ---------- */
+const today = new Date(); today.setHours(0,0,0,0);
+let view = new Date(today.getFullYear(), today.getMonth(), 1);
+const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const daysEl = document.getElementById('days');
+function renderCal(){
+  document.getElementById('monthLabel').textContent = monthNames[view.getMonth()]+' '+view.getFullYear();
+  document.getElementById('prevM').disabled = (view.getFullYear()===today.getFullYear() && view.getMonth()===today.getMonth());
+  daysEl.innerHTML = '';
+  const first = new Date(view.getFullYear(), view.getMonth(), 1).getDay();
+  const n = new Date(view.getFullYear(), view.getMonth()+1, 0).getDate();
+  for(let i=0;i<first;i++) daysEl.appendChild(document.createElement('div'));
+  for(let d=1; d<=n; d++){
+    const dt = new Date(view.getFullYear(), view.getMonth(), d);
+    const el = document.createElement('div');
+    el.className = 'day';
+    el.textContent = d;
+    if(dt < today) el.classList.add('past');
+    if(dt.getTime()===today.getTime()) el.classList.add('today');
+    if(state.date && dt.getTime()===state.date.getTime()) el.classList.add('sel');
+    if(dt >= today){
+      el.onclick = ()=>{ state.date = dt; clearYouPlan(); renderCal(); updatePicked(); };
+    }
+    daysEl.appendChild(el);
+  }
+}
+document.getElementById('prevM').onclick = ()=>{ view.setMonth(view.getMonth()-1); renderCal(); };
+document.getElementById('nextM').onclick = ()=>{ view.setMonth(view.getMonth()+1); renderCal(); };
+
+const slotsEl = document.getElementById('slots');
+CONFIG.slots.forEach(s=>{
+  const el = document.createElement('div');
+  el.className = 'slot';
+  el.innerHTML = `${s.t}<small>${s.s}</small>`;
+  el.onclick = ()=>{
+    slotsEl.querySelectorAll('.slot').forEach(x=>x.classList.remove('sel'));
+    el.classList.add('sel');
+    state.time = s.t; clearYouPlan(); updatePicked();
+  };
+  slotsEl.appendChild(el);
+});
+
+const youPlan = document.getElementById('youPlan');
+youPlan.onclick = ()=>{
+  state.youPlan = true; state.date = null; state.time = null;
+  youPlan.classList.add('sel');
+  slotsEl.querySelectorAll('.slot').forEach(x=>x.classList.remove('sel'));
+  renderCal(); updatePicked(); miniBurst(youPlan);
+};
+function clearYouPlan(){ state.youPlan = false; youPlan.classList.remove('sel'); }
+
+function fmtDate(d){
+  return d.toLocaleDateString('en-IN',{weekday:'long', day:'numeric', month:'long'});
+}
+function whenText(){
+  if(state.youPlan) return "Whenever you plan it";
+  return fmtDate(state.date)+', '+state.time;
+}
+function updatePicked(){
+  const p = document.getElementById('picked');
+  const btn = document.getElementById('timeNext');
+  if(state.youPlan){ p.textContent = "okay, it's on you now 😌"; btn.disabled=false; return; }
+  if(state.date && state.time){ p.textContent = whenText()+' ♥'; btn.disabled=false; return; }
+  btn.disabled = true;
+  p.textContent = state.date ? fmtDate(state.date)+'… and the time?' : (state.time ? state.time+'… which day?' : '');
+}
+renderCal();
+
+/* ---------- 5: finish ---------- */
+function finish(){
+  document.getElementById('fWhat').textContent = state.type;
+  document.getElementById('fWhen').textContent = whenText();
+  answerText = `Hey ${CONFIG.myName} 💕\nYes, it's a date!\n\nWhat: ${state.type}\nWhen: ${whenText()}\n\n— ${CONFIG.herName}`;
+  const t = encodeURIComponent(answerText);
+  document.getElementById('waBtn').href    = `https://wa.me/${CONFIG.whatsapp}?text=${t}`;
+  document.getElementById('waWebBtn').href = `https://web.whatsapp.com/send?phone=${CONFIG.whatsapp}&text=${t}`;
+  document.getElementById('copyBtn').textContent = 'Copy my answer';
+  saveToForm(state.type, whenText());
+  go(5);
+  burst(40);
+  celebrate();
+}
+let answerText = '';
+function copyAnswer(){
+  const b = document.getElementById('copyBtn');
+  const done = ()=>{ b.textContent = 'Copied ♥ paste it to me'; };
+  if(navigator.clipboard){ navigator.clipboard.writeText(answerText).then(done).catch(fallback); }
+  else fallback();
+  function fallback(){
+    const ta = document.createElement('textarea'); ta.value = answerText;
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done();
+  }
+}
+function saveToForm(what, when){
+  const g = CONFIG.googleForm;
+  if(!g || !g.formUrl) return;
+  const body = new URLSearchParams();
+  body.append(g.entryWhat, what);
+  body.append(g.entryWhen, when + '  (sent ' + new Date().toLocaleString('en-IN') + ')');
+  fetch(g.formUrl, { method:'POST', mode:'no-cors', body }).catch(()=>{});
+}
+function restart(){
+  Object.assign(state,{type:null,date:null,time:null,youPlan:false});
+  grid.querySelectorAll('.opt').forEach(x=>x.classList.remove('selected'));
+  slotsEl.querySelectorAll('.slot').forEach(x=>x.classList.remove('sel'));
+  clearYouPlan(); renderCal(); updatePicked();
+  document.getElementById('typeNext').disabled = true;
+  go(3);
+}
+
+/* ---------- floating hearts background ---------- */
+const cv = document.getElementById('hearts'), fxc = document.getElementById('fx');
+const bgx = cv.getContext('2d'), fxx = fxc.getContext('2d');
+let cx = bgx;
+let W, H, hearts = [], pops = [];
+function resize(){ W = cv.width = fxc.width = innerWidth*devicePixelRatio; H = cv.height = fxc.height = innerHeight*devicePixelRatio; }
+addEventListener('resize', resize); resize();
+const colors = ['#e64b6b','#f27a93','#ffb3c1','#c2304f','#ff8fa3'];
+function heartPath(x,y,s){
+  cx.beginPath();
+  cx.moveTo(x, y + s*0.3);
+  cx.bezierCurveTo(x, y, x - s*0.5, y, x - s*0.5, y + s*0.3);
+  cx.bezierCurveTo(x - s*0.5, y + s*0.6, x, y + s*0.8, x, y + s);
+  cx.bezierCurveTo(x, y + s*0.8, x + s*0.5, y + s*0.6, x + s*0.5, y + s*0.3);
+  cx.bezierCurveTo(x + s*0.5, y, x, y, x, y + s*0.3);
+  cx.fill();
+}
+function spawn(){
+  return { x:Math.random()*W, y:H + Math.random()*H*0.5, s:(10+Math.random()*22)*devicePixelRatio,
+           v:(0.3+Math.random()*0.8)*devicePixelRatio, w:Math.random()*Math.PI*2, a:0.15+Math.random()*0.35,
+           c:colors[Math.floor(Math.random()*colors.length)] };
+}
+for(let i=0;i<28;i++){ const h=spawn(); h.y=Math.random()*H; hearts.push(h); }
+function burst(n){
+  for(let i=0;i<n;i++){
+    pops.push({ x:W/2, y:H/2, vx:(Math.random()-.5)*18*devicePixelRatio, vy:(Math.random()*-16-4)*devicePixelRatio,
+                s:(10+Math.random()*18)*devicePixelRatio, life:1, c:colors[Math.floor(Math.random()*colors.length)] });
+  }
+}
+function miniBurst(el){
+  const r = el.getBoundingClientRect();
+  for(let i=0;i<12;i++){
+    pops.push({ x:(r.left+r.width/2)*devicePixelRatio, y:(r.top+r.height/2)*devicePixelRatio,
+                vx:(Math.random()-.5)*10*devicePixelRatio, vy:(Math.random()*-9-2)*devicePixelRatio,
+                s:(8+Math.random()*10)*devicePixelRatio, life:1, c:colors[Math.floor(Math.random()*colors.length)] });
+  }
+}
+/* ---------- celebration: cherry blossoms + sparkles ---------- */
+let petals = [], sparks = [], petalTimer = null;
+const petalColors = ['#ffc4d6','#ffb0c8','#ffd6e2','#ff9fbd','#fff0f5'];
+const sparkColors = ['#ffd166','#fff3b0','#ffffff','#ff8fab','#ffc8dd'];
+function spawnPetal(fromSide){
+  const d = devicePixelRatio;
+  const p = {
+    x: Math.random()*W, y: -20*d,
+    vx: (0.4+Math.random()*1.2)*d, vy:(1+Math.random()*1.6)*d,
+    s:(9+Math.random()*9)*d, r:Math.random()*Math.PI*2, vr:(Math.random()-.5)*0.08,
+    flip:Math.random()*Math.PI*2, sway:Math.random()*Math.PI*2,
+    c:petalColors[Math.floor(Math.random()*petalColors.length)], life:1
+  };
+  if(fromSide){ // party-cannon petals from both bottom corners
+    const left = Math.random()<.5;
+    p.x = left ? 0 : W; p.y = H;
+    p.vx = (left?1:-1)*(6+Math.random()*9)*d;
+    p.vy = -(14+Math.random()*10)*d;
+    p.cannon = true;
+  }
+  petals.push(p);
+}
+function sparkleBurst(cxp, cyp, n){
+  const d = devicePixelRatio;
+  for(let i=0;i<n;i++){
+    const a = Math.random()*Math.PI*2, sp = (2+Math.random()*9)*d;
+    sparks.push({ x:cxp, y:cyp, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp,
+      s:(4+Math.random()*7)*d, life:1, decay:0.008+Math.random()*0.012, rot:Math.random()*Math.PI,
+      c:sparkColors[Math.floor(Math.random()*sparkColors.length)] });
+  }
+}
+function drawPetal(p){
+  cx.save();
+  cx.translate(p.x, p.y); cx.rotate(p.r);
+  cx.scale(1, Math.abs(Math.cos(p.flip))*0.7+0.3);
+  cx.fillStyle = p.c;
+  cx.beginPath();
+  cx.moveTo(0, -p.s);
+  cx.bezierCurveTo(p.s*0.9, -p.s*0.6, p.s*0.7, p.s*0.6, 0, p.s);
+  cx.bezierCurveTo(-p.s*0.7, p.s*0.6, -p.s*0.9, -p.s*0.6, 0, -p.s);
+  cx.fill();
+  // little notch at the tip like a sakura petal
+  cx.fillStyle = 'rgba(255,255,255,.55)';
+  cx.beginPath(); cx.ellipse(0, -p.s*0.15, p.s*0.15, p.s*0.5, 0, 0, Math.PI*2); cx.fill();
+  cx.restore();
+}
+function drawSpark(s){
+  cx.save(); cx.translate(s.x, s.y); cx.rotate(s.rot);
+  cx.fillStyle = s.c; cx.shadowColor = s.c; cx.shadowBlur = 12;
+  const r = s.s, k = r*0.28;
+  cx.beginPath();
+  cx.moveTo(0,-r); cx.quadraticCurveTo(k,-k, r,0); cx.quadraticCurveTo(k,k, 0,r);
+  cx.quadraticCurveTo(-k,k, -r,0); cx.quadraticCurveTo(-k,-k, 0,-r);
+  cx.fill(); cx.restore();
+}
+function celebrate(){
+  const d = devicePixelRatio;
+  for(let i=0;i<70;i++) spawnPetal(true);              // cannon pop
+  setTimeout(()=>{ sparkleBurst(W/2, H*0.45, 90); }, 250);
+  setTimeout(()=>{ sparkleBurst(W*0.25, H*0.3, 40); sparkleBurst(W*0.75, H*0.3, 40); }, 700);
+  clearInterval(petalTimer);
+  let t = 0;
+  petalTimer = setInterval(()=>{                       // gentle blossom rain
+    spawnPetal(false); if(Math.random()<.4) spawnPetal(false);
+    if(Math.random()<.35) sparkleBurst(Math.random()*W, Math.random()*H*0.6, 8);
+    if(++t > 110) clearInterval(petalTimer);           // ~9 seconds
+  }, 80);
+}
+
+function tick(){
+  cx = fxx; cx.clearRect(0,0,W,H);
+  // petals
+  petals = petals.filter(p=>p.y < H+40*devicePixelRatio && p.x > -60*devicePixelRatio && p.x < W+60*devicePixelRatio && p.life>0);
+  petals.forEach(p=>{
+    if(p.cannon){ p.vy += 0.35*devicePixelRatio; p.vx *= 0.985; if(p.vy>0){ p.cannon=false; p.vy=Math.min(p.vy,2*devicePixelRatio);} }
+    else { p.sway += 0.03; p.vx = Math.sin(p.sway)*1.2*devicePixelRatio + 0.5*devicePixelRatio; }
+    p.x += p.vx; p.y += p.vy; p.r += p.vr; p.flip += 0.05;
+    cx.globalAlpha = 0.85; drawPetal(p);
+  });
+  // sparkles
+  sparks = sparks.filter(s=>s.life>0);
+  sparks.forEach(s=>{
+    s.x += s.vx; s.y += s.vy; s.vx *= 0.94; s.vy = s.vy*0.94 + 0.08*devicePixelRatio;
+    s.life -= s.decay; s.rot += 0.1;
+    cx.globalAlpha = Math.max(s.life,0) * (0.6 + 0.4*Math.sin(s.life*30));
+    drawSpark(s);
+  });
+  cx.globalAlpha = 1;
+  cx = bgx; cx.clearRect(0,0,W,H);
+  hearts.forEach((h,i)=>{
+    h.y -= h.v; h.w += 0.01;
+    cx.globalAlpha = h.a; cx.fillStyle = h.c;
+    heartPath(h.x + Math.sin(h.w)*20*devicePixelRatio, h.y, h.s);
+    if(h.y < -h.s*2) hearts[i] = spawn();
+  });
+  pops = pops.filter(p=>p.life>0);
+  pops.forEach(p=>{
+    p.x += p.vx; p.y += p.vy; p.vy += 0.4*devicePixelRatio; p.life -= 0.012;
+    cx.globalAlpha = Math.max(p.life,0); cx.fillStyle = p.c;
+    heartPath(p.x, p.y, p.s);
+  });
+  cx.globalAlpha = 1;
+  requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>
